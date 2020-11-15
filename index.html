@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reset.css">
+    <title>Etch-A-Sketch</title>
+</head>
+
+<body>
+    <h1>Mouse O' Pad</h1>
+    <div id="grid-view">
+        <div id="option-container">
+            <button id = "reset">Reset</button>
+            <button id = "rgb-random">RGB</button>
+            <button id = "eraser">Eraser</button>
+            <button id = "black">Black</button>
+
+        </div>
+        <div id = "range-container"> 
+            <label for="pixel-size">Pixel Size:</label>
+            <div id = "labels">
+                <label for="pixel-size">10px</label>
+                <input id="pixel-size" name="pixel-size" type="range" min="10" max="100" value="50" step="5">
+                <label for="pixel-size">100px</label>
+            </div>
+            
+          
+        </div>
+    </div>
+
+   
+
+    <script src="logic.js"></script>
+</body>
+
+</html>
