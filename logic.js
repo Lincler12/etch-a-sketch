@@ -2,7 +2,7 @@
 function DisplayGridView() {
     const sizeOfGrid = 500;
     let ItemNumber = 15;
-   
+
     function CreateGrid() {
         const newDivGridElement = document.createElement('div');
         newDivGridElement.setAttribute('class', 'grid');
@@ -13,10 +13,10 @@ function DisplayGridView() {
         gridViewElement.insertBefore(newDivGridElement, gridViewElement.lastElementChild);
         FillGrid();
 
-       
+
     }
 
-    function FillGrid(){
+    function FillGrid() {
         let sizeOfPixel = sizeOfGrid / ItemNumber;
         const DivGridElement = document.querySelector('.grid');
         DivGridElement.style.cssText = `grid-template-rows: repeat(${ItemNumber}, auto); grid-template-columns: repeat(${ItemNumber}, auto)`;
@@ -46,7 +46,7 @@ function DisplayGridView() {
     }
     DisplayButtons();
 
-    function PixelResize(){
+    function PixelResize() {
         ItemNumber = this.value;
         const previousGridPixels = document.querySelectorAll('.item');
         Array.from(previousGridPixels).forEach(previousGridPixel => {
@@ -62,12 +62,36 @@ DisplayGridView();
 
 function Logic() {
 
-  
+
     let brushColor = "black"
     let mouseDownActive = false;
+    const resetButton = document.getElementById('reset');
+    const rgbRandomButton = document.getElementById('rgb-random');
+    const eraserButton = document.getElementById('eraser');
+    const blackButton = document.getElementById('black');
+    const divItems = document.getElementsByClassName('item');
+
+   
+    class BrushState {
+        static get DEFAULT() {
+            return -1;
+        }
+        static get RGB() {
+            return 1;
+        }
+        static get ERASER() {
+            return 2;
+        }
+        static get BLACK() {
+            return 3;
+        }
+    }
+    let brushState = BrushState.DEFAULT;
 
     function PaintOnClickAndHover() {
         const divItemElements = document.getElementsByClassName('item');
+        const rgbFunction = rgbRandomLogic();
+        const eraserFunction = eraserLogic();
 
         window.addEventListener('mousedown', () => {
             mouseDownActive = true;
@@ -77,12 +101,26 @@ function Logic() {
         });
 
         function paintItems(e) {
-            if (e.type === 'mousedown') {
+            if (e.type === 'mousedown') { //the mousedown did not work correctly before adding this because mouseDownActive became true after the mousedown
                 mouseDownActive = true;
             }
+            switch (brushState) {
+                case BrushState.RESET:
+                case BrushState.RGB:
+                    rgbFunction(e);
+                    break;
+                case BrushState.ERASER:
+                    eraserFunction(e);
+                    break;
+                case BrushState.BLACK:
+                default:
+            }
+           
             if (mouseDownActive && this.dataset.colored === 'false') {
                 this.style.backgroundColor = brushColor;
-                this.dataset.colored = 'true';
+                if(brushState !== BrushState.ERASER){
+                    this.dataset.colored = 'true';
+                }
             }
 
 
@@ -94,23 +132,6 @@ function Logic() {
         });
 
 
-    }
-
-    PaintOnClickAndHover();
-
-    function ButtonLogic() {
-        const resetButton = document.getElementById('reset');
-        const rgbRandomButton = document.getElementById('rgb-random');
-        const eraserButton = document.getElementById('eraser');
-        const blackButton = document.getElementById('black');
-        const divItems = document.getElementsByClassName('item');
-
-        let eventsObject = {
-            resetButtonEvent: '',
-            rgbRandomButtonEvent:'',
-            eraserButtonEvent:'',
-            blackButtonEvent:''
-        }
 
         function resetLogic() {
             Array.from(divItems).forEach(item => {
@@ -123,10 +144,9 @@ function Logic() {
         }
         resetButton.addEventListener('click', resetLogic);
 
-
-        function rgbRandomLogic() {
-
         
+        
+        function rgbRandomLogic(e) {
             const brightnessDropValue = 10;
             function RandomColor() {
                 let red, green, blue;
@@ -137,93 +157,42 @@ function Logic() {
                 return `rgb(${red},${green},${blue})`;
             }
 
-            function parseItemsRGB() {
+            return function parseItemsRGB(e) {
 
-                if (this.dataset.colored === 'true' && mouseDownActive) {
-                    if (!(this.dataset.bright === '0')) {
-                        this.style.filter = `brightness(${parseInt(this.dataset.bright) - brightnessDropValue}%)`
-                        this.dataset.bright = `${parseInt(this.dataset.bright) - brightnessDropValue}`;
+                if (e.target.dataset.colored === 'true' && mouseDownActive) {
+                    if (!(e.target.dataset.bright === '0')) {
+                        e.target.style.filter = `brightness(${parseInt(e.target.dataset.bright) - brightnessDropValue}%)`
+                        e.target.dataset.bright = `${parseInt(e.target.dataset.bright) - brightnessDropValue}`;
                     }
                 }
                 brushColor = RandomColor();
 
-                eventsObject.rgbRandomButtonEvent = parseItemsRGB;
-            }
-
-            Array.from(divItems).forEach(item => {
-                item.addEventListener('mouseover', parseItemsRGB);
-                item.addEventListener('mousedown', parseItemsRGB);
-                item.dataset.rgb = 'true'
-            })
-
-
+            };
         }
-        function removeRGBEventListeners(item) {
-            if (item.dataset.rgb === 'true') {
-                item.removeEventListener('mouseover', eventsObject.rgbRandomButtonEvent);
-                item.removeEventListener('mousedown', eventsObject.rgbRandomButtonEvent);
-                item.dataset.rgb = 'false'
-            }
+      
+        rgbRandomButton.addEventListener('click', () => {brushState = BrushState.RGB;});
 
-        }
-        rgbRandomButton.addEventListener('click', rgbRandomLogic);
+        function eraserLogic(e) {
 
-        function eraserLogic() {
-
-            
-            function parseItemsEraser() {
-                if (this.dataset.colored === 'true' && mouseDownActive) {
-                    this.style.filter = 'brightness(100%)';
-                    this.style.backgroundColor = 'white';
-                    this.dataset.colored = 'false';
-                    this.dataset.bright = '100';
+            return function parseItemsEraser(e) {
+                if (mouseDownActive) {
+                    e.target.style.filter = 'brightness(100%)';
+                    brushColor= 'white';
+                    e.target.dataset.colored = 'false';
+                    e.target.dataset.bright = '100';
                 }
 
             }
-            eventsObject.eraserButtonEvent = parseItemsEraser;
-            Array.from(divItems).forEach(item => {
-                item.addEventListener('mouseover', parseItemsEraser);
-                item.addEventListener('mousedown', parseItemsEraser);
-                item.dataset.eraser = 'true';
-            })
-
         }
 
-        function removeEraserEventListeners(item) {
-            if (item.dataset.eraser === 'true') {
-                item.removeEventListener('mouseover', eventsObject.eraserButtonEvent);
-                item.removeEventListener('mousedown', eventsObject.eraserButtonEvent);
-                item.dataset.eraser = 'false';
-            }
-        }
 
-        eraserButton.addEventListener('click', eraserLogic);
-
-        function removeListeners(e) {
-            switch (e.target.id) {
-                case "reset":
-                    break;
-                case "rgb-random":
-                    Array.from(divItems).forEach(item => {
-                        removeEraserEventListeners(item);
-
-                    })
-                    break;
-                case "eraser":
-                    Array.from(divItems).forEach(item => {
-                        removeRGBEventListeners(item);
-                    })
-                    break;
-                case "black":
-                    break;
-            }
-        }
-        window.addEventListener('click', removeListeners);
+        eraserButton.addEventListener('click', () => {
+            brushState = BrushState.ERASER;
+        });
 
 
     }
-
-    ButtonLogic();
+    PaintOnClickAndHover();
 
 
 }
