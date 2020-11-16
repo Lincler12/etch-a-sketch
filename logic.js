@@ -92,6 +92,7 @@ function Logic() {
         const divItemElements = document.getElementsByClassName('item');
         const rgbFunction = rgbRandomLogic();
         const eraserFunction = eraserLogic();
+        const blackFunction = blackButtonLogic();
 
         window.addEventListener('mousedown', () => {
             mouseDownActive = true;
@@ -113,6 +114,8 @@ function Logic() {
                     eraserFunction(e);
                     break;
                 case BrushState.BLACK:
+                    blackFunction(e);
+                    break;
                 default:
             }
            
@@ -189,6 +192,18 @@ function Logic() {
         eraserButton.addEventListener('click', () => {
             brushState = BrushState.ERASER;
         });
+
+
+        function blackButtonLogic(e){
+
+            return function parseItemsBlackColor(e){
+                brushColor = 'black';
+            }
+        }
+
+        blackButton.addEventListener('click', () => {
+            brushState = BrushState.BLACK;
+        })
 
 
     }
